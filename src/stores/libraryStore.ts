@@ -53,19 +53,32 @@ function isMarkdown(name: string) {
 }
 
 async function buildTree(dir: string, name: string, depth: number): Promise<TreeNode> {
-  const entries = await readDir(dir);
+  let entries;
+  try {
+    entries = await readDir(dir);
+  } catch {
+    // 无权限/系统目录/连接点等：该目录折叠为不可展开节点，不影响整棵树
+    return { name, path: dir, isDir: true, children: [] };
+  }
   const children: TreeNode[] = [];
   for (const e of entries) {
-    if (e.name.startsWith(".")) continue;
-    const path = joinPath(dir, e.name);
-    if (e.isDirectory) {
-      if (depth > 0) {
-        children.push(await buildTree(path, e.name, depth - 1));
-      } else {
-        children.push({ name: e.name, path, isDir: true });
+    try {
+      if (e.name.startsWith(".")) continue;
+      const path = joinPath(dir, e.name);
+      // 兼容不同版本插件中 isDirectory 为布尔或函数两种形态
+      const raw = e.isDirectory as unknown;
+      const isDir = typeof raw === "function" ? (raw as () => boolean).call(e) : raw === true;
+      if (isDir) {
+        if (depth > 0) {
+          children.push(await buildTree(path, e.name, depth - 1));
+        } else {
+          children.push({ name: e.name, path, isDir: true });
+        }
+      } else if (isMarkdown(e.name)) {
+        children.push({ name: e.name, path, isDir: false });
       }
-    } else if (isMarkdown(e.name)) {
-      children.push({ name: e.name, path, isDir: false });
+    } catch {
+      /* 单个条目异常跳过，不影响其余文件 */
     }
   }
   children.sort((a, b) => {
