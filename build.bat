@@ -1,32 +1,33 @@
 @echo off
-chcp 65001 >nul
-title Markly 一键打包
+title Markly Build
 cd /d "%~dp0"
 
 echo ============================================
-echo   Markly 一键打包
-echo   产物: release\ 目录
-echo     - Markly-Setup-*.exe  安装包（免管理员）
-echo     - Markly-Portable.zip 便携版
+echo   Markly one-click build
+echo   Output in release\ :
+echo     - Markly-Setup-*.exe  installer (no admin required)
+echo     - Markly-Portable.zip portable
 echo ============================================
 echo.
 
 if not exist node_modules (
-  echo [1/2] 安装依赖...
-  call npm install || goto :fail
+  echo [1/2] Installing dependencies...
+  call npm install
+  if errorlevel 1 goto :fail
 )
 
-echo [2/2] 构建安装包与便携版...
-node scripts\build.mjs || goto :fail
+echo [2/2] Building installer and portable zip...
+node scripts\build.mjs
+if errorlevel 1 goto :fail
 
 echo.
-echo 打包完成！产物在 release\ 目录。
+echo Done! Output in release\
 explorer "release"
 pause
 exit /b 0
 
 :fail
 echo.
-echo *** 打包失败，请检查上方错误信息 ***
+echo *** BUILD FAILED - check errors above ***
 pause
 exit /b 1
