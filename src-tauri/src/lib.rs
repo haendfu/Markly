@@ -17,6 +17,7 @@ fn startup_file(state: tauri::State<Mutex<Option<String>>>) -> Option<String> {
 /* ---------- 文件库操作（绕过 fs 插件作用域，任意目录可用） ---------- */
 
 #[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct TreeEntry {
     pub name: String,
     pub path: String,
