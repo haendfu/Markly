@@ -12,6 +12,8 @@ import { Lightbox } from "./components/Viewer/Lightbox";
 import { useContextMenu, type MenuItem } from "./stores/contextMenuStore";
 import { readMarkdownFile } from "./lib/tauri/files";
 import { buildContentMenu } from "./lib/contextMenuBuilder";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 const SourcePane = lazy(() =>
   import("./components/Source/SourcePane").then((m) => ({ default: m.SourcePane })),
@@ -88,9 +90,32 @@ async function restoreSession() {
 export default function App() {
   const [lightbox, setLightbox] = useState<string | null>(null);
 
+  // 双击 md 文件启动 / 已有实例时再次双击 → 打开对应文件
   useEffect(() => {
     initTheme();
-    restoreSession();
+    if (!(window as any).__TAURI_INTERNALS__) return;
+    invoke<string | null>("startup_file")
+      .then(async (path) => {
+        if (path) {
+          const f = await readMarkdownFile(path);
+          useEditorStore.getState().openFile(f);
+        } else {
+          restoreSession();
+        }
+      })
+      .catch(() => restoreSession());
+    const un = listen<string>("markly:open-file", (e) => {
+      readMarkdownFile(e.payload)
+        .then((f) => useEditorStore.getState().openFile(f))
+        .catch(console.error);
+    });
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+
+  // 会话定期保存
+  useEffect(() => {
     const saveTimer = window.setInterval(saveSession, 5000);
     window.addEventListener("beforeunload", saveSession);
     return () => {

@@ -3,8 +3,15 @@
 //   Markly-Setup-x64.exe   — NSIS 离线安装包（内嵌 WebView2 安装器）
 //   Markly-Portable.zip    — 便携版（需系统已有 WebView2，Win10/11 一般自带）
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
+import { cpSync, mkdirSync, rmSync, existsSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { homedir } from "node:os";
+
+// 确保 rustup 的 cargo 在 PATH 中
+const cargoBin = join(homedir(), ".cargo", "bin");
+if (existsSync(cargoBin)) {
+  process.env.PATH = `${cargoBin};${process.env.PATH}`;
+}
 
 const root = resolve(import.meta.dirname, "..");
 const tauriCli = join(root, "node_modules", "@tauri-apps", "cli", "tauri.js");
@@ -45,7 +52,7 @@ https://developer.microsoft.com/microsoft-edge/webview2/
 
 数据（设置/主题）保存在 %APPDATA%\\com.markly.app。
 `;
-import("node:fs").then((fs) => fs.writeFileSync(join(portableDir, "README.txt"), readme));
+writeFileSync(join(portableDir, "README.txt"), readme);
 
 console.log("==> 压缩便携版…");
 execFileSync("powershell", [

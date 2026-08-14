@@ -31,13 +31,35 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "fileAssociations": [
+      {
+        "ext": ["md"],
+        "name": "Markly Markdown",
+        "description": "Markdown 文档",
+        "role": "Editor"
+      },
+      {
+        "ext": ["markdown"],
+        "name": "Markly Markdown",
+        "description": "Markdown 文档",
+        "role": "Editor"
+      },
+      {
+        "ext": ["mdown", "mkd"],
+        "name": "Markly Markdown",
+        "description": "Markdown 文档",
+        "role": "Editor"
+      }
+    ],
     "windows": {
       "webviewInstallMode": {
         "type": "offlineInstaller"
       },
       "nsis": {
+        "installMode": "currentUser",
         "languages": ["SimpChinese", "English"],
-        "displayLanguageSelector": true
+        "displayLanguageSelector": true,
+        "installerHooks": "./nsis/hooks.nsh"
       }
     },
     "icon": [
