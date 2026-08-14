@@ -41,11 +41,19 @@ export function ContextMenu() {
     if (!open) return;
     const close = () => hide();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && hide();
+    const onMouseDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) hide();
+    };
+    const onWheel = () => hide();
     window.addEventListener("resize", close);
     window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("wheel", onWheel, { passive: true });
     return () => {
       window.removeEventListener("resize", close);
       window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("wheel", onWheel);
     };
   }, [open, hide]);
 
