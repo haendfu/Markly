@@ -1,6 +1,6 @@
 # Markly
 
-一款追求苹果级审美的 Markdown 阅读器与编辑器，专注沉浸阅读体验。
+一款追求轻量化的 Markdown 阅读器与编辑器，专注沉浸阅读体验。
 
 ![平台](https://img.shields.io/badge/平台-Windows-blue) ![框架](https://img.shields.io/badge/框架-Tauri%202%20%2B%20React%2019-green) ![许可](https://img.shields.io/badge/状态-MVP-orange)
 
