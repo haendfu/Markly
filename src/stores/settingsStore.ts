@@ -36,7 +36,8 @@ export function resolveCurrentTheme(): ThemeName {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   theme: (localStorage.getItem("markly:theme-setting") as ThemeSetting) || "system",
   fontSize: 17,
-  sidebarVisible: localStorage.getItem("markly:sidebar") !== "hidden",
+  // 默认隐藏侧栏（沉浸阅读）；仅当用户显式展开过才记住展开
+  sidebarVisible: localStorage.getItem("markly:sidebar") === "visible",
   outlineVisible: false,
   splitPreview: true,
   setTheme: (t) => {
