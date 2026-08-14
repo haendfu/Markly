@@ -2,6 +2,8 @@
 
 一款类 Typora 的 Markdown 阅读器与编辑器，追求苹果级的审美与沉浸阅读体验。
 
+> 「类 Typora」仅为功能定位的描述性对比。Markly 与 Typora 及其开发团队无任何关联，未获其赞助或授权；本项目不含任何来自 Typora 的代码与资源。Typora 是其各自所有者的商标。
+
 ![平台](https://img.shields.io/badge/平台-Windows-blue) ![框架](https://img.shields.io/badge/框架-Tauri%202%20%2B%20React%2019-green) ![许可](https://img.shields.io/badge/状态-MVP-orange)
 
 ## 特性
