@@ -1,5 +1,5 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
 import type { OpenFile } from "../../stores/editorStore";
 
 export const MARKDOWN_EXT = /\.(md|markdown|mdown|mkd)$/i;
@@ -15,8 +15,9 @@ export async function pickAndOpenMarkdownFile(): Promise<OpenFile | null> {
   return readMarkdownFile(path);
 }
 
+/** 经 Rust 命令读取（不受 fs 插件作用域/路径格式影响） */
 export async function readMarkdownFile(path: string): Promise<OpenFile> {
-  const content = await readTextFile(path);
+  const content = await invoke<string>("read_text", { path });
   const name = path.split(/[\\/]/).pop() ?? path;
   const dir = path.slice(0, path.length - name.length - 1);
   return { path, name, dir, content };

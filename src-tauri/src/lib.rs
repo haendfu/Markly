@@ -99,6 +99,19 @@ fn rename_entry(old_path: String, new_path: String) -> Result<(), String> {
     fs::rename(&old_path, &new_path).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn read_text(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| format!("读取失败 {}: {e}", path))
+}
+
+#[tauri::command]
+fn write_text(path: String, content: String) -> Result<(), String> {
+    if let Some(parent) = Path::new(&path).parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    fs::write(&path, content).map_err(|e| format!("写入失败 {}: {e}", path))
+}
+
 pub fn run() {
     let first_md = std::env::args()
         .nth(1)
@@ -126,7 +139,9 @@ pub fn run() {
             startup_file,
             scan_tree,
             create_entry,
-            rename_entry
+            rename_entry,
+            read_text,
+            write_text
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import { watchImmediate } from "@tauri-apps/plugin-fs";
-import { confirm } from "@tauri-apps/plugin-dialog";
+import { confirm, message } from "@tauri-apps/plugin-dialog";
 import { readMarkdownFile } from "../lib/tauri/files";
 import { useEditorStore } from "./editorStore";
 
@@ -126,9 +126,14 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   select: (path) => set({ selected: path }),
 
   openNote: async (path) => {
-    const file = await readMarkdownFile(path);
-    useEditorStore.getState().openFile(file);
-    set({ selected: path });
+    try {
+      const file = await readMarkdownFile(path);
+      useEditorStore.getState().openFile(file);
+      set({ selected: path });
+    } catch (e) {
+      await message(`无法打开文件：\n${e}`, { title: "打开失败", kind: "error" });
+      throw e;
+    }
   },
 
   createNote: async (dir, name) => {
