@@ -1,0 +1,131 @@
+/* ============================================================
+   Milkdown (ProseMirror) 主题映射 — 全部走设计令牌
+   排版规则复用 .markdown-body（见 content.css）
+   ============================================================ */
+
+.wysiwyg-pane {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.milkdown {
+  min-height: 100%;
+}
+
+.milkdown .editor {
+  outline: none;
+}
+
+.milkdown-doc {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 48px 32px 120px;
+  font-size: var(--content-font-size);
+  line-height: var(--content-line-height);
+  color: var(--fg);
+  outline: none;
+  caret-color: var(--accent);
+}
+
+/* 光标所在标题处显示 # 前缀（Typora 式提示） */
+.milkdown-doc h1::before,
+.milkdown-doc h2::before,
+.milkdown-doc h3::before,
+.milkdown-doc h4::before,
+.milkdown-doc h5::before,
+.milkdown-doc h6::before {
+  color: var(--fg-faint);
+  font-weight: 400;
+  margin-right: 0.3em;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+.milkdown-doc h1.ProseMirror-focused::before { content: "# "; opacity: 1; }
+.milkdown-doc h2.ProseMirror-focused::before { content: "## "; opacity: 1; }
+.milkdown-doc h3.ProseMirror-focused::before { content: "### "; opacity: 1; }
+.milkdown-doc h4.ProseMirror-focused::before { content: "#### "; opacity: 1; }
+.milkdown-doc h5.ProseMirror-focused::before { content: "##### "; opacity: 1; }
+.milkdown-doc h6.ProseMirror-focused::before { content: "###### "; opacity: 1; }
+
+/* 代码块 */
+.milkdown-doc pre {
+  background: var(--bg-code);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  margin: 1.2em 0;
+}
+.milkdown-doc code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--bg-code);
+  padding: 0.15em 0.45em;
+  border-radius: 5px;
+}
+.milkdown-doc pre code {
+  background: none;
+  padding: 0;
+}
+
+/* 引用块 */
+.milkdown-doc blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-blockquote);
+  padding: 0.4em 0 0.4em 1.2em;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--fg-secondary);
+  margin: 1.2em 0;
+}
+
+/* 表格 */
+.milkdown-doc table {
+  border-collapse: collapse;
+  margin: 1.2em 0;
+  box-shadow: 0 0 0 1px var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.milkdown-doc th { background: var(--bg-code); font-weight: 600; }
+.milkdown-doc :is(th, td) {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  min-width: 3em;
+}
+
+/* 图片 */
+.milkdown-doc img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
+
+/* 数学公式 */
+.milkdown-doc .math-block {
+  margin: 1.2em 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* 链接 */
+.milkdown-doc a {
+  color: var(--accent);
+}
+
+/* 选区 */
+.milkdown-doc ::selection,
+.milkdown-doc .ProseMirror-selectednode {
+  background: var(--bg-selection);
+}
+.milkdown-doc .ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+/* 任务列表 */
+.milkdown-doc li[data-item-type="task"] {
+  list-style: none;
+}
+.milkdown-doc input[type="checkbox"] {
+  accent-color: var(--accent);
+}
