@@ -30,6 +30,7 @@ import {
   closeBracketsKeymap,
 } from "@codemirror/autocomplete";
 import { useEditorStore } from "../../stores/editorStore";
+import { registerCmView } from "../../lib/blockInsert";
 
 function cmTheme() {
   return EditorView.theme(
@@ -120,6 +121,7 @@ export function SourceEditor({ onChange, onScrollRatio }: Props) {
       ],
     });
     const view = new EditorView({ state, parent: containerRef.current });
+    registerCmView(view);
 
     if (onScrollRatio) {
       const handler = () => {
@@ -130,13 +132,17 @@ export function SourceEditor({ onChange, onScrollRatio }: Props) {
       };
       view.scrollDOM.addEventListener("scroll", handler, { passive: true });
       return () => {
+        registerCmView(null);
         view.scrollDOM.removeEventListener("scroll", handler);
         view.destroy();
       };
     }
 
     view.focus();
-    return () => view.destroy();
+    return () => {
+      registerCmView(null);
+      view.destroy();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

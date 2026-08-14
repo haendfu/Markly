@@ -1,6 +1,21 @@
 import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { MenuItem } from "../stores/contextMenuStore";
+import { insertBlock, type BlockKind } from "./blockInsert";
+import { useEditorStore } from "../stores/editorStore";
+
+const BLOCK_ITEMS: { kind: BlockKind; label: string; icon: string }[] = [
+  { kind: "code", label: "插入代码块", icon: "insertCode" },
+  { kind: "table", label: "插入表格", icon: "insertTable" },
+  { kind: "math", label: "插入公式", icon: "insertMath" },
+  { kind: "mermaid", label: "插入 Mermaid 图表", icon: "insertMermaid" },
+  { kind: "quote", label: "插入引用块", icon: "insertQuote" },
+  { kind: "tasklist", label: "插入任务列表", icon: "insertTask" },
+  { kind: "bullet", label: "插入无序列表", icon: "insertList" },
+  { kind: "ordered", label: "插入有序列表", icon: "insertOrdered" },
+  { kind: "hr", label: "插入分隔线", icon: "insertHr" },
+  { kind: "heading", label: "插入二级标题", icon: "insertHeading" },
+];
 
 function isEditable(el: HTMLElement | null): boolean {
   if (!el) return false;
@@ -87,6 +102,21 @@ export function buildContentMenu(
   }
   if (canEdit) {
     items.push({ label: "粘贴", icon: "paste", action: () => pasteToTarget() });
+  }
+
+  // 编辑模式下提供块插入
+  const mode = useEditorStore.getState().mode;
+  if (mode === "wysiwyg" || mode === "source") {
+    if (items.length > 0 && !items[items.length - 1].separator) {
+      items.push({ separator: true });
+    }
+    for (const b of BLOCK_ITEMS) {
+      items.push({
+        label: b.label,
+        icon: b.icon,
+        action: () => void insertBlock(b.kind),
+      });
+    }
   }
 
   return items;

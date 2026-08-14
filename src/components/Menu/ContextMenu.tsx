@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
   Scissors, Copy, ClipboardPaste, ExternalLink, Link2, Image, ZoomIn,
-  Pencil, Trash2, FolderPlus, FilePlus, type LucideIcon,
+  Pencil, Trash2, FolderPlus, FilePlus,
+  Code2, Table, Sigma, Workflow, TextQuote, ListChecks, List, ListOrdered,
+  Minus, Heading2, type LucideIcon,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useContextMenu } from "../../stores/contextMenuStore";
@@ -19,6 +21,16 @@ const ICONS: Record<string, LucideIcon> = {
   delete: Trash2,
   newFolder: FolderPlus,
   newNote: FilePlus,
+  insertCode: Code2,
+  insertTable: Table,
+  insertMath: Sigma,
+  insertMermaid: Workflow,
+  insertQuote: TextQuote,
+  insertTask: ListChecks,
+  insertList: List,
+  insertOrdered: ListOrdered,
+  insertHr: Minus,
+  insertHeading: Heading2,
 };
 
 export function ContextMenu() {
