@@ -1,6 +1,6 @@
 # CLAUDE.md — Markly 开发指南
 
-Markly 是 Tauri 2 + React 19 的 Windows 桌面 Markdown 应用（类 Typora，中文界面）。
+Markly 是 Tauri 2 + React 19 的 Windows 桌面 Markdown 应用（中文界面）。
 
 ## 本机命令怪癖（重要）
 

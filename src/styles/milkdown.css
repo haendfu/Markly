@@ -27,7 +27,7 @@
   caret-color: var(--accent);
 }
 
-/* 光标所在标题处显示 # 前缀（Typora 式提示） */
+/* 光标所在标题处显示 # 前缀提示 */
 .milkdown-doc h1::before,
 .milkdown-doc h2::before,
 .milkdown-doc h3::before,
