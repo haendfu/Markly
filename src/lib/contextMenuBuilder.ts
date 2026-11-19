@@ -3,6 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import type { MenuItem } from "../stores/contextMenuStore";
 import { insertBlock, type BlockKind } from "./blockInsert";
 import { useEditorStore } from "../stores/editorStore";
+import { displayImageSource } from "./markdown/assets";
 
 const BLOCK_ITEMS: { kind: BlockKind; label: string; icon: string }[] = [
   { kind: "code", label: "插入代码块", icon: "insertCode" },
@@ -81,12 +82,14 @@ export function buildContentMenu(
   }
 
   if (img && img.closest(".markdown-body, .milkdown-doc")) {
+    const original = displayImageSource(img);
     items.push(
       { label: "放大预览", icon: "zoom", action: () => previewImage(img.src) },
       {
         label: "复制图片地址",
         icon: "copyImage",
-        action: () => writeText(img.getAttribute("src") ?? img.src).catch(console.error),
+        // 复制 Markdown 里写的原始地址，而不是内部转换出的 asset URL
+        action: () => writeText(original).catch(console.error),
       },
       { separator: true },
     );

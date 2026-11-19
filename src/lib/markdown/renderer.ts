@@ -3,6 +3,7 @@ import footnote from "markdown-it-footnote";
 import taskLists from "markdown-it-task-lists";
 import { katex } from "@mdit/plugin-katex";
 import { highlightCode, isHighlighterReady } from "./shiki";
+import { rewriteImageSources } from "./assets";
 
 export const md = new MarkdownIt({
   html: true,
@@ -113,9 +114,15 @@ md.renderer.rules.fence = (tokens, idx, options, env, self) => {
 
 /* ---------- 入口 ---------- */
 
-export function renderMarkdown(source: string): string {
+export interface RenderOptions {
+  /** 文档所在目录：本地图片等相对资源以它为根解析 */
+  baseDir?: string | null;
+}
+
+export function renderMarkdown(source: string, opts?: RenderOptions): string {
   resetSlugs();
-  return md.render(source);
+  const html = md.render(source);
+  return rewriteImageSources(html, opts?.baseDir ?? null);
 }
 
 export { slugify };

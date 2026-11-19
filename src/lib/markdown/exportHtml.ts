@@ -3,7 +3,8 @@ import { renderMarkdown } from "./renderer";
 import { renderMermaidBlocks } from "./mermaid";
 import { ensureHighlighter } from "./shiki";
 import { katexFontCss } from "./katexFonts";
-import { readFile } from "@tauri-apps/plugin-fs";
+import { imageSourceOf, resolveLocalPath } from "./assets";
+import { invoke } from "@tauri-apps/api/core";
 import { basename } from "@tauri-apps/api/path";
 
 const KATEX_CSS_EXCLUDE_FONTS = true; // 字体单独内嵌
@@ -30,23 +31,26 @@ function themeVariablesCss(): string {
   return `:root {\n${vars.join("\n")}\n}`;
 }
 
-/** 将本地图片内联为 base64 */
+/** 将本地图片内联为 base64（经 Rust 命令读取，不受 fs 插件作用域限制） */
 async function inlineImages(container: HTMLElement, dir: string | null) {
-  if (!dir) return;
   const imgs = container.querySelectorAll("img");
   await Promise.all(
     Array.from(imgs).map(async (img) => {
-      const src = img.getAttribute("src") ?? "";
-      if (/^(https?:|data:)/.test(src)) return;
+      // 渲染阶段已把可解析的地址换成 asset URL 并保留原文到 data-src，
+      // 这里必须用原始地址还原绝对路径，否则会把 asset URL 当成本地路径。
+      const src = imageSourceOf(img);
+      if (!src) return;
+      const abs = resolveLocalPath(src, dir);
+      if (!abs) return; // 远程图片 / data URI 保持原样
       try {
-        const clean = decodeURIComponent(src.replace(/^\.?\//, ""));
-        const bytes = await readFile(`${dir}\\${clean}`);
+        const raw = await invoke<ArrayBuffer | number[]>("read_binary", { path: abs });
+        const bytes = raw instanceof ArrayBuffer ? new Uint8Array(raw) : Uint8Array.from(raw);
         let binary = "";
         const chunk = 0x8000;
         for (let i = 0; i < bytes.length; i += chunk) {
           binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
         }
-        const ext = clean.split(".").pop()?.toLowerCase() ?? "png";
+        const ext = abs.split(".").pop()?.toLowerCase() ?? "png";
         const mime = ext === "jpg" ? "jpeg" : ext === "svg" ? "svg+xml" : ext;
         img.setAttribute("src", `data:image/${mime};base64,${btoa(binary)}`);
       } catch {
@@ -67,7 +71,7 @@ export interface ExportOptions {
 export async function renderDocumentToHtml(opts: ExportOptions): Promise<string> {
   await ensureHighlighter();
   const container = document.createElement("div");
-  container.innerHTML = renderMarkdown(opts.markdown);
+  container.innerHTML = renderMarkdown(opts.markdown, { baseDir: opts.dir });
   await renderMermaidBlocks(container);
   await inlineImages(container, opts.dir);
 

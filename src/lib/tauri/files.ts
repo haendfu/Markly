@@ -20,5 +20,7 @@ export async function readMarkdownFile(path: string): Promise<OpenFile> {
   const content = await invoke<string>("read_text", { path });
   const name = path.split(/[\\/]/).pop() ?? path;
   const dir = path.slice(0, path.length - name.length - 1);
-  return { path, name, dir, content };
+  // 换行风格在读取时确定：编辑器的缓冲区可能已被规整为 LF
+  const eol: "\r\n" | "\n" = content.includes("\r\n") ? "\r\n" : "\n";
+  return { path, name, dir, content, eol };
 }

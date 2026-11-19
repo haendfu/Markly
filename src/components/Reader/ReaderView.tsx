@@ -21,7 +21,7 @@ export function ReaderView() {
   useEffect(() => {
     if (!file || !containerRef.current) return;
     const el = containerRef.current;
-    el.innerHTML = renderMarkdown(file.content);
+    el.innerHTML = renderMarkdown(file.content, { baseDir: file.dir });
     renderMermaidBlocks(el);
     el.closest(".content-area")?.scrollTo({ top: 0 });
     const onClick = (e: MouseEvent) => handleContentClick(e, el);

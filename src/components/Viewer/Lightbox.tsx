@@ -5,6 +5,7 @@ import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 export function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
   const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
+  const rootRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ sx: number; sy: number; px: number; py: number } | null>(null);
 
   useEffect(() => {
@@ -20,15 +21,25 @@ export function Lightbox({ src, onClose }: { src: string; onClose: () => void })
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // React 的 onWheel 是被动监听，preventDefault 无效 → 用原生非被动监听
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const step = e.deltaY < 0 ? 1.12 : 0.89;
+      setScale((s) => Math.min(8, Math.max(0.2, s * step)));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   const clampScale = (s: number) => Math.min(8, Math.max(0.2, s));
 
   return (
     <div
+      ref={rootRef}
       className="lightbox"
-      onWheel={(e) => {
-        e.preventDefault();
-        setScale((s) => clampScale(s * (e.deltaY < 0 ? 1.12 : 0.89)));
-      }}
       onMouseDown={(e) => {
         drag.current = { sx: e.clientX, sy: e.clientY, px: pos.x, py: pos.y };
       }}

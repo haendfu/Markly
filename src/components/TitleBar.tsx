@@ -15,14 +15,26 @@ const THEMES: { value: ThemeSetting; icon: typeof Sun; label: string }[] = [
 ];
 
 export function TitleBar() {
-  const {
-    mode, file, dirty, setMode, openFile,
-    history, historyIdx, goBack, goForward,
-  } = useEditorStore();
-  const { theme, setTheme, sidebarVisible, toggleSidebar, outlineVisible, toggleOutline } =
-    useSettingsStore();
+  // 一律用选择器订阅：file 对象每次输入都会变，整店订阅会让标题栏跟着重渲染
+  const mode = useEditorStore((s) => s.mode);
+  const fileName = useEditorStore((s) => s.file?.name ?? null);
+  const dirty = useEditorStore((s) => s.dirty);
+  const historyIdx = useEditorStore((s) => s.historyIdx);
+  const historyLen = useEditorStore((s) => s.history.length);
+  const setMode = useEditorStore((s) => s.setMode);
+  const openFile = useEditorStore((s) => s.openFile);
+  const goBack = useEditorStore((s) => s.goBack);
+  const goForward = useEditorStore((s) => s.goForward);
+
+  const theme = useSettingsStore((s) => s.theme);
+  const setTheme = useSettingsStore((s) => s.setTheme);
+  const sidebarVisible = useSettingsStore((s) => s.sidebarVisible);
+  const toggleSidebar = useSettingsStore((s) => s.toggleSidebar);
+  const outlineVisible = useSettingsStore((s) => s.outlineVisible);
+  const toggleOutline = useSettingsStore((s) => s.toggleOutline);
+
   const [exportOpen, setExportOpen] = useState(false);
-  const hasFile = !!file;
+  const hasFile = fileName !== null;
 
   useEffect(() => {
     const open = () => setExportOpen(true);
@@ -52,8 +64,8 @@ export function TitleBar() {
       <button
         className="titlebar-btn"
         title="前进 (Alt+→)"
-        disabled={historyIdx >= history.length - 1}
-        style={historyIdx >= history.length - 1 ? { opacity: 0.4, cursor: "default" } : undefined}
+        disabled={historyIdx >= historyLen - 1}
+        style={historyIdx >= historyLen - 1 ? { opacity: 0.4, cursor: "default" } : undefined}
         onClick={() => goForward()}
       >
         <ArrowRight size={17} />
@@ -89,7 +101,7 @@ export function TitleBar() {
       </button>
 
       <span className="titlebar-title">
-        {file ? file.name + (dirty ? " •" : "") : "Markly"}
+        {fileName ? fileName + (dirty ? " •" : "") : "Markly"}
       </span>
 
       <div className="titlebar-spacer" />

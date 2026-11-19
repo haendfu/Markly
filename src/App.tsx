@@ -56,6 +56,23 @@ function saveSession() {
   localStorage.setItem("markly:session", JSON.stringify(s));
 }
 
+/**
+ * 恢复滚动位置：正文（代码高亮/mermaid/图片）是异步渲染的，
+ * 固定延时容易在内容还没撑开时把 scrollTop 夹断，改为逐帧重试到位置生效。
+ */
+function restoreScrollTop(top: number) {
+  if (!(top > 0)) return;
+  const el = document.querySelector<HTMLElement>(".content-area");
+  if (!el) return;
+  const deadline = performance.now() + 1200;
+  const tick = () => {
+    el.scrollTop = top;
+    if (Math.abs(el.scrollTop - top) <= 2 || performance.now() > deadline) return;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 async function restoreSession() {
   if (!(window as any).__TAURI_INTERNALS__) {
     // 浏览器开发预览
@@ -77,9 +94,7 @@ async function restoreSession() {
         ? (s.mode as any)
         : "read",
     });
-    setTimeout(() => {
-      document.querySelector(".content-area")?.scrollTo({ top: s.scrollTop });
-    }, 400);
+    restoreScrollTop(s.scrollTop);
   } catch {
     /* 上次的文件已不存在 */
   }

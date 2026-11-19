@@ -112,15 +112,23 @@ fn write_text(path: String, content: String) -> Result<(), String> {
     fs::write(&path, content).map_err(|e| format!("写入失败 {}: {e}", path))
 }
 
+/// 读取二进制文件（图片等），以原始字节返回，导出时直接内联。
+/// 走命令而不是 fs 插件：插件的作用域默认只允许应用目录。
+#[tauri::command]
+fn read_binary(path: String) -> Result<tauri::ipc::Response, String> {
+    let bytes = fs::read(&path).map_err(|e| format!("读取失败 {}: {e}", path))?;
+    Ok(tauri::ipc::Response::new(bytes))
+}
+
 pub fn run() {
     let first_md = std::env::args()
         .nth(1)
-        .filter(|p| !p.starts_with('-') && p.to_lowercase().ends_with(".md"));
+        .filter(|p| !p.starts_with('-') && is_markdown(p));
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
-            // 已有实例时，把新打开的文件路径转发给前端
-            if let Some(path) = argv.get(1) {
+            // 已有实例时，把新打开的文件路径转发给前端（同样只认 markdown）
+            if let Some(path) = argv.get(1).filter(|p| is_markdown(p.as_str())) {
                 let _ = app.emit("markly:open-file", path);
             }
             if let Some(w) = app.get_webview_window("main") {
@@ -141,7 +149,8 @@ pub fn run() {
             create_entry,
             rename_entry,
             read_text,
-            write_text
+            write_text,
+            read_binary
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

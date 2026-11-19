@@ -7,6 +7,8 @@ export interface OpenFile {
   name: string;
   dir: string;
   content: string;
+  /** 磁盘文件的换行风格，保存时保持原样 */
+  eol?: "\r\n" | "\n";
 }
 
 interface HistoryEntry {
@@ -101,4 +103,32 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 export function syncHistoryMode() {
   const { file, mode, history, historyIdx } = useEditorStore.getState();
   if (file && history[historyIdx]) history[historyIdx] = { path: file.path, mode };
+}
+
+/** path 是否就是 dir 或位于 dir 之内 */
+export function isPathInside(path: string, dir: string): boolean {
+  if (path === dir) return true;
+  return path.startsWith(`${dir}\\`) || path.startsWith(`${dir}/`);
+}
+
+/**
+ * 重命名 / 移动文件或目录后，同步当前文件与历史里的路径。
+ * 否则自动保存会继续写回旧路径（把已改名的文件重新创建出来）。
+ */
+export function remapEditorPaths(from: string, to: string) {
+  const state = useEditorStore.getState();
+  const patch: Partial<EditorState> = {};
+
+  if (state.file && isPathInside(state.file.path, from)) {
+    const path = to + state.file.path.slice(from.length);
+    const name = path.split(/[\\/]/).pop() ?? path;
+    patch.file = { ...state.file, path, name, dir: path.slice(0, path.length - name.length - 1) };
+  }
+
+  const history = state.history.map((h) =>
+    isPathInside(h.path, from) ? { ...h, path: to + h.path.slice(from.length) } : h,
+  );
+  if (history.some((h, i) => h !== state.history[i])) patch.history = history;
+
+  if (Object.keys(patch).length > 0) useEditorStore.setState(patch);
 }

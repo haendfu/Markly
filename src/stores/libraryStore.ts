@@ -3,7 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { watchImmediate } from "@tauri-apps/plugin-fs";
 import { confirm, message } from "@tauri-apps/plugin-dialog";
 import { readMarkdownFile } from "../lib/tauri/files";
-import { useEditorStore } from "./editorStore";
+import { cancelAutosave, flushAutosave } from "../lib/autosave";
+import { isPathInside, remapEditorPaths, useEditorStore } from "./editorStore";
 
 export interface TreeNode {
   name: string;
@@ -153,11 +154,11 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   renameNode: async (path, newName) => {
     const dir = parentPath(path);
     const newPath = joinPath(dir, newName);
+    if (newPath === path) return;
+    // 先把待保存内容落到旧路径，再重命名，最后同步编辑器里的路径
+    await flushAutosave();
     await invoke("rename_entry", { oldPath: path, newPath });
-    const { file } = useEditorStore.getState();
-    if (file?.path === path) {
-      useEditorStore.setState({ file: { ...file, path: newPath, name: newName } });
-    }
+    remapEditorPaths(path, newPath);
     await get().refresh();
   },
 
@@ -169,9 +170,12 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       cancelLabel: "取消",
     });
     if (!ok) return;
-    await invoke("trash_item", { path: node.path });
     const { file, closeFile } = useEditorStore.getState();
-    if (file?.path === node.path) closeFile();
+    const openInside = file ? isPathInside(file.path, node.path) : false;
+    // 丢弃待保存内容，否则自动保存会把刚删除的文件重新写回来
+    if (openInside) cancelAutosave(node.path);
+    await invoke("trash_item", { path: node.path });
+    if (openInside) closeFile();
     await get().refresh();
   },
 }));

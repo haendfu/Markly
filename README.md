@@ -63,7 +63,7 @@ npm run tauri dev # 开发模式（热重载）
 # 一键打包（Windows 下直接双击 build.bat）
 npm run build:release
 # 产物在 release/：
-#   Markly_0.1.0_x64-setup.exe  NSIS 离线安装包（内嵌 WebView2）
+#   Markly_0.2.0_x64-setup.exe  NSIS 离线安装包（内嵌 WebView2）
 #   Markly-Portable.zip         便携版
 ```
 

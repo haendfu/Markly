@@ -12,6 +12,7 @@ export function SplitPreview({
   editorScrollRatio?: number;
 }) {
   const rawContent = useEditorStore((s) => s.file?.content ?? "");
+  const baseDir = useEditorStore((s) => s.file?.dir ?? null);
   const theme = useSettingsStore((s) => s.theme);
   const fontSize = useSettingsStore((s) => s.fontSize);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,12 +27,12 @@ export function SplitPreview({
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    el.innerHTML = renderMarkdown(content);
+    el.innerHTML = renderMarkdown(content, { baseDir });
     renderMermaidBlocks(el);
     const onClick = (e: MouseEvent) => handleContentClick(e, el);
     el.addEventListener("click", onClick);
     return () => el.removeEventListener("click", onClick);
-  }, [content, theme]);
+  }, [content, theme, baseDir]);
 
   // 比例滚动同步（编辑区 → 预览区）
   useEffect(() => {
