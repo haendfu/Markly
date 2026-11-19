@@ -3,7 +3,16 @@
 //   Markly-Setup-x64.exe   — NSIS 离线安装包（内嵌 WebView2 安装器）
 //   Markly-Portable.zip    — 便携版（需系统已有 WebView2，Win10/11 一般自带）
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, rmSync, existsSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  rmSync,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
 
@@ -26,13 +35,24 @@ rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 
 // 1. NSIS 安装包
+// bundle/nsis 会累积历史版本的安装包，readdir 的顺序不稳定，
+// 不能直接取第一个 "-setup.exe"，否则打包后可能把旧版本产物复制出去。
+const pkgVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
 const nsisDir = join(bundleDir, "nsis");
 if (existsSync(nsisDir)) {
-  const setup = readdirSync(nsisDir).find((f) => f.endsWith("-setup.exe"));
-  if (setup) {
-    cpSync(join(nsisDir, setup), join(outDir, setup.replace(/^markly/i, "Markly")));
-    console.log("安装包:", setup);
+  const setups = readdirSync(nsisDir).filter((f) => f.toLowerCase().endsWith("-setup.exe"));
+  const expected = `markly_${pkgVersion}_x64-setup.exe`.toLowerCase();
+  let setup = setups.find((f) => f.toLowerCase() === expected);
+  if (!setup) {
+    const newest = setups
+      .map((f) => ({ f, mtime: statSync(join(nsisDir, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime)[0];
+    setup = newest?.f;
+    if (setup) console.warn(`警告：未找到 ${expected}，改用最新的 ${setup}`);
   }
+  if (!setup) throw new Error(`NSIS 安装包未生成：${nsisDir}`);
+  cpSync(join(nsisDir, setup), join(outDir, setup.replace(/^markly/i, "Markly")));
+  console.log("安装包:", setup);
 }
 
 // 2. 便携版
