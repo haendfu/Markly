@@ -31,6 +31,12 @@
 - **会话恢复**：重启后回到上次的文件、模式与滚动位置
 - 双击 md 文件在已有窗口打开（单实例）
 
+### AI 助手（Ctrl+Shift+A）
+- **可折叠右侧面板**，按 `本文` 或 `工作区` 提问，工作区模式会自动挑选最相关的几篇笔记
+- 支持 **OpenAI / Claude(Anthropic)** 两种协议，请求由 Rust 端流式转发，API Key 只存在本机
+- 正文右键可**引用选区或整段**，提问时也会自动带上当前选区
+- 改文档时弹出 **VS Code 风格 diff**，逐块勾选后应用，可直接写回文件
+
 ### 导出
 - **HTML**：自包含单文件（内嵌主题变量、KaTeX 字体 base64、Mermaid SVG、代码高亮样式），零外部请求
 - **PDF**：经打印对话框另存，带分页优化规则
@@ -49,6 +55,7 @@
 | Ctrl+S | 立即保存 |
 | Ctrl+P | 导出（HTML / PDF） |
 | Ctrl+\ | 显示/隐藏侧栏 |
+| Ctrl+Shift+A | 打开/收起 AI 助手 |
 | Alt+← / Alt+→ | 后退 / 前进 |
 | Esc | 关闭灯箱/对话框 |
 
@@ -63,7 +70,7 @@ npm run tauri dev # 开发模式（热重载）
 # 一键打包（Windows 下直接双击 build.bat）
 npm run build:release
 # 产物在 release/：
-#   Markly_0.2.0_x64-setup.exe  NSIS 离线安装包（内嵌 WebView2）
+#   Markly_0.3.0_x64-setup.exe  NSIS 离线安装包（内嵌 WebView2）
 #   Markly-Portable.zip         便携版
 ```
 
