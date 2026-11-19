@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { PanelLeft, Moon, Sun, Monitor, Code2, BookOpen, Pencil, FolderOpen, FileText, List, Download, ArrowLeft, ArrowRight } from "lucide-react";
+import { PanelLeft, Moon, Sun, Monitor, Code2, BookOpen, Pencil, FolderOpen, FileText, List, Download, ArrowLeft, ArrowRight, Sparkles, Coffee, MoonStar } from "lucide-react";
 import { ExportDialog } from "./Export/ExportDialog";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEditorStore } from "../stores/editorStore";
 import { useSettingsStore, type ThemeSetting } from "../stores/settingsStore";
 import { pickAndOpenMarkdownFile } from "../lib/tauri/files";
 import { useLibraryStore } from "../stores/libraryStore";
+import { useAiStore } from "../stores/aiStore";
 import { clsx } from "clsx";
 
 const THEMES: { value: ThemeSetting; icon: typeof Sun; label: string }[] = [
   { value: "system", icon: Monitor, label: "跟随系统" },
   { value: "light", icon: Sun, label: "浅色" },
+  { value: "sepia", icon: Coffee, label: "暖色" },
   { value: "dark", icon: Moon, label: "深色" },
+  { value: "midnight", icon: MoonStar, label: "纯黑" },
 ];
 
 export function TitleBar() {
@@ -32,6 +35,9 @@ export function TitleBar() {
   const toggleSidebar = useSettingsStore((s) => s.toggleSidebar);
   const outlineVisible = useSettingsStore((s) => s.outlineVisible);
   const toggleOutline = useSettingsStore((s) => s.toggleOutline);
+
+  const aiOpen = useAiStore((s) => s.open);
+  const toggleAi = useAiStore((s) => s.toggle);
 
   const [exportOpen, setExportOpen] = useState(false);
   const hasFile = fileName !== null;
@@ -149,6 +155,14 @@ export function TitleBar() {
           <Download size={16} />
         </button>
       )}
+
+      <button
+        className={clsx("titlebar-btn", aiOpen && "active")}
+        title="AI 助手 (Ctrl+Shift+A)"
+        onClick={toggleAi}
+      >
+        <Sparkles size={16} />
+      </button>
 
       {/* 主题 */}
       <div className="flex items-center gap-1 ml-2 pl-2" style={{ borderLeft: "1px solid var(--border)" }}>

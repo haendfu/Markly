@@ -7,11 +7,15 @@ import { TitleBar } from "./components/TitleBar";
 import { ReaderView } from "./components/Reader/ReaderView";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import { OutlinePanel } from "./components/Outline/OutlinePanel";
+import { AiPanel } from "./components/Ai/AiPanel";
+import { useAiStore } from "./stores/aiStore";
 import { ContextMenu } from "./components/Menu/ContextMenu";
 import { Lightbox } from "./components/Viewer/Lightbox";
 import { useContextMenu, type MenuItem } from "./stores/contextMenuStore";
 import { readMarkdownFile } from "./lib/tauri/files";
 import { buildContentMenu } from "./lib/contextMenuBuilder";
+import { installCloseGuard } from "./lib/lifecycle";
+import { flushAutosave } from "./lib/autosave";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
@@ -131,11 +135,13 @@ export default function App() {
 
   // 会话定期保存
   useEffect(() => {
+    const uninstallCloseGuard = installCloseGuard();
     const saveTimer = window.setInterval(saveSession, 5000);
     window.addEventListener("beforeunload", saveSession);
     return () => {
       clearInterval(saveTimer);
       window.removeEventListener("beforeunload", saveSession);
+      uninstallCloseGuard();
       saveSession();
     };
   }, []);
@@ -166,13 +172,20 @@ export default function App() {
       } else if (mod && e.key.toLowerCase() === "p") {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent("markly:export"));
+      } else if (mod && e.shiftKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        useAiStore.getState().toggle();
       } else if (mod && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        if (s.file && s.dirty) {
-          saveMarkdownFile(s.file, s.file.content)
-            .then(() => s.markSaved())
-            .catch(console.error);
-        }
+        void (async () => {
+          // 先把防抖队列里的最新编辑落盘，再补一次当前内容
+          await flushAutosave();
+          const store = useEditorStore.getState();
+          if (store.file && store.dirty) {
+            await saveMarkdownFile(store.file, store.file.content);
+            store.markSaved();
+          }
+        })().catch(console.error);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -182,6 +195,9 @@ export default function App() {
   // 自定义右键菜单 + 图片双击预览
   useEffect(() => {
     const onContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      // 输入框（含 AI 配置里的 Key 输入）与 AI 面板保留系统菜单，方便粘贴
+      if (target?.closest("input, textarea, .ai-panel")) return;
       e.preventDefault();
       const items: MenuItem[] = buildContentMenu(e.target as HTMLElement, (src) =>
         setLightbox(src),
@@ -230,6 +246,7 @@ export default function App() {
             <OutlinePanel />
           </aside>
         )}
+        <AiPanel />
       </div>
       <ContextMenu />
       {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}

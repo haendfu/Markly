@@ -10,7 +10,9 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
     watch: {
-      ignored: ["**/src-tauri/**"],
+      // 编辑器/工具写文件时会留 .tmpdir 与 .tmp，W: 这类盘上 chokidar 监视它们会 EBUSY
+      // 直接打挂整个 dev server，这里统一忽略。
+      ignored: ["**/src-tauri/**", "**/*.tmpdir/**", "**/*.tmp"],
     },
   },
 });

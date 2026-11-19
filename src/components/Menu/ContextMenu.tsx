@@ -4,7 +4,7 @@ import {
   Scissors, Copy, ClipboardPaste, ExternalLink, Link2, Image, ZoomIn,
   Pencil, Trash2, FolderPlus, FilePlus,
   Code2, Table, Sigma, Workflow, TextQuote, ListChecks, List, ListOrdered,
-  Minus, Heading2, type LucideIcon,
+  Minus, Heading2, Sparkles, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useContextMenu } from "../../stores/contextMenuStore";
@@ -31,6 +31,8 @@ const ICONS: Record<string, LucideIcon> = {
   insertOrdered: ListOrdered,
   insertHr: Minus,
   insertHeading: Heading2,
+  askAi: Sparkles,
+  rewriteAi: WandSparkles,
 };
 
 export function ContextMenu() {

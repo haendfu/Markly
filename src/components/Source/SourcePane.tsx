@@ -9,6 +9,7 @@ import { flushAutosave, scheduleAutosave } from "../../lib/autosave";
 export function SourcePane() {
   const splitPreview = useSettingsStore((s) => s.splitPreview);
   const path = useEditorStore((s) => s.file?.path ?? null);
+  const docVersion = useEditorStore((s) => s.docVersion);
   const [scrollRatio, setScrollRatio] = useState(0);
 
   const handleChange = useCallback((doc: string) => {
@@ -22,8 +23,12 @@ export function SourcePane() {
 
   return (
     <div className="source-pane">
-      {/* key 必须绑定文件：否则切换笔记时 CodeMirror 仍持有上一份文档 */}
-      <SourceEditor key={path ?? "none"} onScrollRatio={setScrollRatio} onChange={handleChange} />
+      {/* key 绑定文件与文档版本：否则切换笔记 / AI 整篇改写后 CodeMirror 仍持有旧文档 */}
+      <SourceEditor
+        key={`${path ?? "none"}:${docVersion}`}
+        onScrollRatio={setScrollRatio}
+        onChange={handleChange}
+      />
       {splitPreview && (
         <div className="source-pane-preview">
           <SplitPreview editorScrollRatio={scrollRatio} />

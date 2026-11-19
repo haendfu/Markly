@@ -3,6 +3,8 @@ use std::{fs, path::Path};
 use serde::Serialize;
 use tauri::{Emitter, Manager};
 
+mod ai;
+
 #[tauri::command]
 fn trash_item(path: String) -> Result<(), String> {
     trash::delete(&path).map_err(|e| e.to_string())
@@ -150,7 +152,9 @@ pub fn run() {
             rename_entry,
             read_text,
             write_text,
-            read_binary
+            read_binary,
+            ai::ai_stream,
+            ai::ai_cancel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

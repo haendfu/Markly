@@ -6,6 +6,7 @@ import "./styles/themes.css";
 import "./styles/base.css";
 import "./styles/app.css";
 import "./styles/content.css";
+import "./styles/ai.css";
 import "./styles/milkdown.css";
 import "katex/dist/katex.min.css";
 

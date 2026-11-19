@@ -6,6 +6,7 @@ import { flushAutosave, scheduleAutosave } from "../../lib/autosave";
 /** 所见即所得模式容器：Milkdown 编辑器 + 防抖自动保存 */
 export function WysiwygPane() {
   const file = useEditorStore((s) => s.file);
+  const docVersion = useEditorStore((s) => s.docVersion);
   const path = file?.path ?? null;
 
   const handleChange = useCallback((markdown: string) => {
@@ -21,9 +22,9 @@ export function WysiwygPane() {
 
   return (
     <div className="wysiwyg-pane">
-      {/* key 必须绑定文件：否则切换笔记时 Milkdown 仍持有上一份文档 */}
+      {/* key 绑定文件与文档版本：否则切换笔记 / AI 整篇改写后 Milkdown 仍持有旧文档 */}
       <MilkdownEditor
-        key={path ?? "none"}
+        key={`${path ?? "none"}:${docVersion}`}
         initialMarkdown={file.content}
         baseDir={file.dir}
         onChange={handleChange}

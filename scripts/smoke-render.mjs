@@ -74,9 +74,20 @@ check("盘符绝对路径 src", img.getAttribute("src"), "file:///C:/notes/imgs/
 img = imgOf("![a](/imgs/a.png)");
 check("根路径 src", img.getAttribute("src"), "file:///W:/imgs/a.png");
 
-// 6. file:// URL（markdown-it 的 validateLink 会拒绝 file:，用内嵌 HTML 验证）
+// 6. file:// URL：renderer 现在放行 file: 协议，Markdown 语法也能直接渲染
+img = imgOf("![a](file:///C:/pics/a.png)");
+check("file:// Markdown src", img?.getAttribute("src"), "file:///C:/pics/a.png");
+check("file:// Markdown data-src", img?.getAttribute("data-src"), "file:///C:/pics/a.png");
 img = imgOf('<img src="file:///C:/pics/a.png">');
-check("file:// URL src", img.getAttribute("src"), "file:///C:/pics/a.png");
+check("file:// HTML src", img.getAttribute("src"), "file:///C:/pics/a.png");
+
+// 6b. // 开头：域名按协议相对 URL 放行，其它按 UNC 网络路径解析
+img = imgOf("![a](//cdn.example.com/a.png)");
+check("协议相对域名 src", img.getAttribute("src"), "//cdn.example.com/a.png");
+check("协议相对域名 data-src", img.getAttribute("data-src"), null);
+img = imgOf("![a](//nas/photos/a.png)");
+check("UNC 网络路径 src", img.getAttribute("src"), "file://///nas/photos/a.png");
+check("UNC 网络路径 data-src", img.getAttribute("data-src"), "//nas/photos/a.png");
 
 // 7. 远程图片与 data URI 保持不变，且不写 data-src
 img = imgOf("![a](https://example.com/a.png)");

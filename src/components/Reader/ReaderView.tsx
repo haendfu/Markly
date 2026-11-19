@@ -9,8 +9,8 @@ import { handleContentClick } from "../../lib/contentLinks";
 export function ReaderView() {
   const file = useEditorStore((s) => s.file);
   const theme = useSettingsStore((s) => s.theme);
-  const fontSize = useSettingsStore((s) => s.fontSize);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastPathRef = useRef<string | null>(null);
   const [ready, setReady] = useState(false);
 
   // 高亮器就绪后触发一次重渲染
@@ -23,7 +23,11 @@ export function ReaderView() {
     const el = containerRef.current;
     el.innerHTML = renderMarkdown(file.content, { baseDir: file.dir });
     renderMermaidBlocks(el);
-    el.closest(".content-area")?.scrollTo({ top: 0 });
+    // 只有换文件才回到顶部：切主题、内容变更都不该丢掉阅读位置
+    if (lastPathRef.current !== file.path) {
+      lastPathRef.current = file.path;
+      el.closest(".content-area")?.scrollTo({ top: 0 });
+    }
     const onClick = (e: MouseEvent) => handleContentClick(e, el);
     el.addEventListener("click", onClick);
     return () => el.removeEventListener("click", onClick);
@@ -31,11 +35,5 @@ export function ReaderView() {
 
   if (!file) return null;
 
-  return (
-    <div
-      ref={containerRef}
-      className="markdown-body reader-view"
-      style={{ "--content-font-size": `${fontSize}px` } as React.CSSProperties}
-    />
-  );
+  return <div ref={containerRef} className="markdown-body reader-view" />;
 }

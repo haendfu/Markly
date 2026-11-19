@@ -108,6 +108,12 @@ export function driveRootOf(path: string): string | null {
   return m ? `${m[1]}:\\` : null;
 }
 
+/**
+ * 首段是否像公网域名（用来区分 `//cdn.example.com/a.png` 和 `//nas/photo/a.png`）。
+ * IPv4 主机名不算：`//192.168.1.5/share/a.png` 在 Windows 上更可能是 UNC。
+ */
+const HOST_LIKE = /^(?!\d{1,3}(?:\.\d{1,3}){3}$)[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}$/i;
+
 function fileUrlToPath(url: string): string | null {
   try {
     const parsed = new URL(url);
@@ -142,7 +148,13 @@ export function resolveLocalPath(src: string, baseDir: string | null): string | 
   if (/^[a-z][a-z0-9+.-]*:/i.test(decoded)) {
     return /^file:/i.test(decoded) ? fileUrlToPath(decoded) : null;
   }
-  if (decoded.startsWith("//")) return null; // 协议相对 URL
+  // 以 // 开头：既可能是协议相对 URL（//cdn.example.com/a.png），
+  // 也可能是 Windows 的 UNC 网络路径（//nas/photos/a.png）。
+  // 这个应用处理的是本地文件，所以只有首段像域名时才按远程地址放行。
+  if (decoded.startsWith("//")) {
+    const host = decoded.slice(2).split(/[\\/]/)[0];
+    return HOST_LIKE.test(host) ? null : normalizeFsPath(decoded);
+  }
 
   // 以 / 或 \ 开头：视为「文档所在盘符的根」
   if (/^[\\/]/.test(decoded)) {

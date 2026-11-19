@@ -129,7 +129,9 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   openNote: async (path) => {
     try {
       const file = await readMarkdownFile(path);
-      useEditorStore.getState().openFile(file);
+      // 打开另一篇笔记时保留当前的编辑模式（在阅读模式才回到阅读模式）
+      const currentMode = useEditorStore.getState().mode;
+      useEditorStore.getState().openFile(file, { mode: currentMode });
       set({ selected: path });
     } catch (e) {
       await message(`无法打开文件：\n${e}`, { title: "打开失败", kind: "error" });
@@ -142,7 +144,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     await invoke("create_entry", { path, isDir: false });
     set((s) => ({ expanded: new Set([...s.expanded, dir]) }));
     await get().refresh();
-    await get().openNote(path);
+    // 新建的空笔记直接进编辑模式
+    const file = await readMarkdownFile(path);
+    useEditorStore.getState().openFile(file, { mode: "wysiwyg" });
+    set({ selected: path });
   },
 
   createFolder: async (dir, name) => {

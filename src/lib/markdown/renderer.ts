@@ -15,6 +15,14 @@ md.use(footnote);
 md.use(taskLists, { enabled: false, label: true });
 md.use(katex, { output: "html" });
 
+/*
+ * markdown-it 默认把 file: 协议当成不安全链接直接丢掉，
+ * 但这个应用的链接/图片本来就是本地文件，所以额外放行 file://。
+ * 点击行为由 contentLinks 统一接管（本地文件交给系统打开）。
+ */
+const baseValidateLink = md.validateLink.bind(md);
+md.validateLink = (url: string) => baseValidateLink(url) || /^file:/i.test(url);
+
 /* ---------- 标题 ID ---------- */
 
 function slugify(text: string): string {

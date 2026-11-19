@@ -3,6 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import type { MenuItem } from "../stores/contextMenuStore";
 import { insertBlock, type BlockKind } from "./blockInsert";
 import { useEditorStore } from "../stores/editorStore";
+import { readBlockCitation, readDomSelection, useAiStore } from "../stores/aiStore";
 import { displayImageSource } from "./markdown/assets";
 
 const BLOCK_ITEMS: { kind: BlockKind; label: string; icon: string }[] = [
@@ -105,6 +106,30 @@ export function buildContentMenu(
   }
   if (canEdit) {
     items.push({ label: "粘贴", icon: "paste", action: () => pasteToTarget() });
+  }
+
+  // 正文 → 引用给 AI / 让 AI 改写这一段
+  // 有选区就用选区；只有光标（在很多视图里右键不会真的选中文字）就用所在段落。
+  const citation = readDomSelection() ?? readBlockCitation(target);
+  if (citation) {
+    const wholeBlock = citation.kind === "block";
+    items.push(
+      {
+        label: wholeBlock ? "引用这一段给 AI" : "加入 AI 引用",
+        icon: "askAi",
+        action: () => useAiStore.getState().addCitation(citation),
+      },
+      {
+        label: wholeBlock ? "让 AI 改写这一段" : "让 AI 改写这段",
+        icon: "rewriteAi",
+        action: () => {
+          const store = useAiStore.getState();
+          store.addCitation(citation);
+          store.setDraft("请改写下面这段内容，保持原意但表达更清晰，然后给出修改后的全文：");
+        },
+      },
+      { separator: true },
+    );
   }
 
   // 编辑模式下提供块插入

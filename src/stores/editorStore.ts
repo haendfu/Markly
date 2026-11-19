@@ -20,12 +20,15 @@ interface EditorState {
   mode: EditorMode;
   file: OpenFile | null;
   dirty: boolean;
+  /** 文档内容被整篇替换（AI 改写、外部重新载入）时自增，编辑器以此重建 */
+  docVersion: number;
   history: HistoryEntry[];
   historyIdx: number;
   setMode: (m: EditorMode) => void;
   openFile: (f: OpenFile, opts?: { pushHistory?: boolean; mode?: EditorMode }) => void;
   closeFile: () => void;
   setContent: (c: string) => void;
+  applyContent: (c: string) => void;
   markSaved: () => void;
   goBack: () => Promise<void>;
   goForward: () => Promise<void>;
@@ -45,6 +48,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   mode: "read",
   file: null,
   dirty: false,
+  docVersion: 0,
   history: [],
   historyIdx: -1,
 
@@ -54,6 +58,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const pushHistory = opts?.pushHistory ?? true;
     const { history, historyIdx } = get();
     const mode = opts?.mode ?? "read";
+    const docVersion = get().docVersion + 1;
     if (pushHistory) {
       const truncated = history.slice(0, historyIdx + 1);
       if (truncated[truncated.length - 1]?.path !== f.path) {
@@ -62,14 +67,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           file: f,
           mode,
           dirty: false,
+          docVersion,
           history: truncated.slice(-50),
           historyIdx: Math.min(truncated.length - 1, 49),
         });
       } else {
-        set({ file: f, mode, dirty: false, historyIdx: truncated.length - 1, history: truncated });
+        set({
+          file: f,
+          mode,
+          dirty: false,
+          docVersion,
+          historyIdx: truncated.length - 1,
+          history: truncated,
+        });
       }
     } else {
-      set({ file: f, mode, dirty: false });
+      set({ file: f, mode, dirty: false, docVersion });
     }
   },
 
@@ -77,6 +90,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   setContent: (c) =>
     set((s) => (s.file ? { file: { ...s.file, content: c }, dirty: true } : {})),
+
+  /** 整篇替换（AI 应用修改、外部载入）：同时让编辑器重建 */
+  applyContent: (c) =>
+    set((s) =>
+      s.file
+        ? {
+            file: { ...s.file, content: c },
+            dirty: true,
+            docVersion: s.docVersion + 1,
+          }
+        : {},
+    ),
 
   markSaved: () => set({ dirty: false }),
 
@@ -91,10 +116,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   goForward: async () => {
     const { history, historyIdx, file } = get();
     if (historyIdx >= history.length - 1) return;
-    // 先记录当前文件的当前模式
-    if (file) history[historyIdx] = { path: file.path, mode: get().mode };
-    const entry = history[historyIdx + 1];
-    set({ historyIdx: historyIdx + 1 });
+    // 先记录当前文件的当前模式（不可变更新，避免原地改数组）
+    const nextHistory = file
+      ? history.map((h, i) => (i === historyIdx ? { path: file.path, mode: get().mode } : h))
+      : history;
+    const entry = nextHistory[historyIdx + 1];
+    set({ history: nextHistory, historyIdx: historyIdx + 1 });
     await loadEntry(entry);
   },
 }));
@@ -102,7 +129,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 /** 把当前文件与模式记入历史条目（模式切换时调用） */
 export function syncHistoryMode() {
   const { file, mode, history, historyIdx } = useEditorStore.getState();
-  if (file && history[historyIdx]) history[historyIdx] = { path: file.path, mode };
+  if (!file || !history[historyIdx]) return;
+  useEditorStore.setState({
+    history: history.map((h, i) => (i === historyIdx ? { path: file.path, mode } : h)),
+  });
 }
 
 /** path 是否就是 dir 或位于 dir 之内 */
