@@ -3,7 +3,8 @@
    ============================================================ */
 
 .ai-panel {
-  width: 384px;
+  /* 宽度由 --ai-width 控制，拖拽条会实时改写 */
+  width: var(--ai-width, 384px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -22,28 +23,6 @@
     opacity: 1;
     transform: translateX(0);
   }
-}
-
-/* 关闭时的悬浮入口 */
-.ai-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-  color: var(--accent-fg);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: var(--shadow-md);
-  transition: transform var(--duration-fast) var(--ease-spring), box-shadow var(--duration-fast);
-  z-index: 20;
-}
-.ai-fab:hover {
-  transform: translateY(-1px) scale(1.04);
-  box-shadow: var(--shadow-lg);
 }
 
 /* ---------- 头部 ---------- */

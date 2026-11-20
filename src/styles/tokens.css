@@ -30,6 +30,8 @@
   /* 标题栏 */
   --titlebar-height: 48px;
   --sidebar-width: 284px;
+  --outline-width: 230px;
+  --ai-width: 384px;
   --sidebar-collapsed-width: 0px;
 
   /* 动效 */

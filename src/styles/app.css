@@ -404,13 +404,62 @@
 /* ---------- 大纲面板 ---------- */
 
 .outline-sidebar {
-  width: 230px;
+  width: var(--outline-width, 230px);
   flex-shrink: 0;
   border-left: 1px solid var(--border);
   background: var(--bg-sidebar);
   overflow-y: auto;
   padding: var(--space-3) var(--space-2);
   animation: fade-in-up 0.25s var(--ease-out);
+}
+
+/* ---------- 分栏拖拽条 ---------- */
+
+.pane-resizer {
+  flex: 0 0 6px;
+  width: 6px;
+  position: relative;
+  cursor: col-resize;
+  background: transparent;
+  /* 压在两侧边框上，视觉上只占一条细线 */
+  margin: 0 -3px;
+  z-index: 6;
+  outline: none;
+  touch-action: none;
+}
+
+.pane-resizer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 2px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.pane-resizer:hover::after,
+.pane-resizer:focus-visible::after {
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+body.pane-resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+body.pane-resizing .pane-resizer::after {
+  background: var(--accent);
+  opacity: 0.9;
+}
+
+/* 拖拽时关掉过渡，避免栏宽动画跟手不稳 */
+body.pane-resizing .sidebar,
+body.pane-resizing .ai-panel {
+  transition: none;
 }
 
 .outline-panel {

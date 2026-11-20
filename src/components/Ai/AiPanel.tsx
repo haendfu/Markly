@@ -212,7 +212,6 @@ function AiSettings() {
 
 export function AiPanel() {
   const open = useAiStore((s) => s.open);
-  const toggle = useAiStore((s) => s.toggle);
   const setOpen = useAiStore((s) => s.setOpen);
   const settingsOpen = useAiStore((s) => s.settingsOpen);
   const setSettingsOpen = useAiStore((s) => s.setSettingsOpen);
@@ -246,11 +245,8 @@ export function AiPanel() {
   }, [open, settingsOpen]);
 
   if (!open) {
-    return (
-      <button className="ai-fab" onClick={toggle} title="打开 AI 助手（Ctrl+Shift+A）">
-        AI
-      </button>
-    );
+    // 开关只放在标题栏（和主题按钮同一组），收起时不再显示右下角浮动按钮
+    return null;
   }
 
   return (

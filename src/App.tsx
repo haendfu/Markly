@@ -8,6 +8,7 @@ import { ReaderView } from "./components/Reader/ReaderView";
 import { Sidebar } from "./components/Sidebar/Sidebar";
 import { OutlinePanel } from "./components/Outline/OutlinePanel";
 import { AiPanel } from "./components/Ai/AiPanel";
+import { PaneResizer } from "./components/Layout/PaneResizer";
 import { useAiStore } from "./stores/aiStore";
 import { ContextMenu } from "./components/Menu/ContextMenu";
 import { Lightbox } from "./components/Viewer/Lightbox";
@@ -150,6 +151,7 @@ export default function App() {
   const mode = useEditorStore((s) => s.mode);
   const sidebarVisible = useSettingsStore((s) => s.sidebarVisible);
   const outlineVisible = useSettingsStore((s) => s.outlineVisible);
+  const aiOpen = useAiStore((s) => s.open);
 
   // 全局键盘快捷键
   useEffect(() => {
@@ -228,6 +230,7 @@ export default function App() {
         <aside className={clsx("sidebar", !sidebarVisible && "collapsed")}>
           <Sidebar />
         </aside>
+        {sidebarVisible && <PaneResizer pane="sidebar" label="侧栏" />}
         <main className="content-area">
           {file ? (
             mode === "read" ? (
@@ -242,10 +245,14 @@ export default function App() {
           )}
         </main>
         {file && outlineVisible && (
-          <aside className="outline-sidebar">
-            <OutlinePanel />
-          </aside>
+          <>
+            <PaneResizer pane="outline" label="大纲栏" />
+            <aside className="outline-sidebar">
+              <OutlinePanel />
+            </aside>
+          </>
         )}
+        {aiOpen && <PaneResizer pane="ai" label="AI 面板" />}
         <AiPanel />
       </div>
       <ContextMenu />
