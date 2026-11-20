@@ -43,6 +43,7 @@
 
 ### 其它
 - 中文界面、自定义右键菜单（不继承浏览器菜单）
+- **分栏可拖拽**：侧栏 / 正文 / 大纲 / AI 面板之间的分隔条可左右拖动，双击恢复默认宽度，宽度会记住
 - 自动保存（800ms 防抖，保留原文件换行风格）
 - 快捷键：Ctrl+S 保存 / Ctrl+E 切模式 / Ctrl+P 导出 / Ctrl+\ 侧栏 / F11 后续支持
 - 安装包**免管理员权限**，注册 `.md/.markdown/.mdown/.mkd` 右键「用 Markly 打开」
@@ -70,7 +71,7 @@ npm run tauri dev # 开发模式（热重载）
 # 一键打包（Windows 下直接双击 build.bat）
 npm run build:release
 # 产物在 release/：
-#   Markly_0.3.0_x64-setup.exe  NSIS 离线安装包（内嵌 WebView2）
+#   Markly_0.4.0_x64-setup.exe  NSIS 离线安装包（内嵌 WebView2）
 #   Markly-Portable.zip         便携版
 ```
 
